@@ -1,9 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { UseFilters } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Action, Command, Ctx, Hears, Message, On, Start, Update } from 'nestjs-telegraf';
+import { Command, Ctx, Hears, Message, On, Start, Update } from 'nestjs-telegraf';
 import { Observable, filter, map, mergeMap, tap } from 'rxjs';
 import { Scenes, Telegraf } from 'telegraf';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 
 interface TelegramMesage {
@@ -31,39 +32,21 @@ export class TelegramService extends Telegraf {
         this._token = config.get('TELEGRAM_BOT_TOKEN');
     }
 
-
-    
     @Start()
     async onStart(@Ctx() ctx: Context) {
         await ctx.replyWithHTML(`
             Assalomu alaykum va rohmatulloh, Salomatmisiz <b>${ctx.from.first_name}</b> !\nSizga qanday yordam bera olaman?`);
         }
         
+    @Hears(/assalomu alaykum/i)
+    async onSalam(@Ctx() ctx: Context) {
+        const reply = `Va alaykumussalam ${ctx.from.first_name ? ctx.from.first_name : ''}! Sizga qanday yordam bera olaman, Salomatmisiz?`;
+        await ctx.reply(reply);
+        }
         
-        @Hears('Assalomu alaykum va rohmatulloh')
-        async onSalam(@Ctx() ctx: Context) {
-            await ctx.reply('Va alaykumussalam va rohmatulloh! Sizga qanday yordam bera olaman, Salomatmisiz?');
-        }
-
-        @Hears(`Assalomu alaykum va rohmatullohi va barokatuh`)
-        async onAssalomuAvB(@Ctx() ctx: Context) {
-            await ctx.reply('Va alaykumussalam va rohmatullohi va barokatuh! Sizga qanday yordam bera olaman, Salomatmisiz?');
-        }
-
-        @Hears(`Assalomu alaykum`)
-        async onSalom(@Ctx() ctx: Context) {
-            await ctx.reply('Va alaykumussalam! Sizga qanday yordam bera olaman, Salomatmisiz?');
-        }
-
-        @Hears(`assalomu alaykum`)
-        async onsalom(@Ctx() ctx: Context) {
-            await ctx.reply(`Va alaykumussalam  ${ctx.from.first_name}! Sizga qanday yordam bera olaman, Salomatmisiz?`);
-        }
-
-        @Command('/challenge')
-        async onChallenge(@Ctx() ctx: Context) {
-            const adminIds = [-1002398628088];
-        
+    @Command('/challenge')
+    async onChallenge(@Ctx() ctx: Context) {
+            const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
 
             for (const adminId of adminIds) {
                 try {
@@ -75,9 +58,9 @@ export class TelegramService extends Telegraf {
         }
         
 
-        @On('text')
-        async onText(@Ctx() ctx: Context) {
-        const adminIds = [-1002398628088]; 
+    @On('text')
+    async onText(@Ctx() ctx: Context) {
+        const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || []; 
         const userMessage = (ctx.message as any).text; 
         const userId = ctx.from.id;
         const username = ctx.from.username || ' username yo‘q ❌';
@@ -97,7 +80,7 @@ export class TelegramService extends Telegraf {
     
     @On('photo')
     async onPhoto(@Ctx() ctx: Context) {
-        const adminIds = [-1002398628088]; 
+        const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || []; 
 
         const photos = (ctx.message as any).photo; 
         const userId = ctx.from.id;
@@ -129,10 +112,44 @@ export class TelegramService extends Telegraf {
         }
     }
 
+
+    @On("video_note")
+    async onVideoNote(@Ctx() ctx: Context) {
+        const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || [];
+        const userId = ctx.from?.id;
+        const username = ctx.from?.username || ' username yo‘q ❌';
+        const userName = ctx.from?.first_name || 'Foydalanuvchi';
+        const videoNote = (ctx.message as any).video_note;
+    
+        if (!videoNote) {
+            await ctx.reply('Dumaloq video topilmadi. ❌');
+            return;
+        }
+    
+        try {
+            for (const adminId of adminIds) {
+                await ctx.telegram.sendMessage(
+                    adminId,
+                    `📹 Yangi dumaloq video:\n` +
+                    `👤 Foydalanuvchi: ${userName} (ID: ${userId})\n` +
+                    `@${username}\n⏳ Uzunligi: ${videoNote.duration} soniya.\n` +
+                    `🔘 Hajmi: ${videoNote.length} px.`
+                );
+    
+                await ctx.telegram.sendVideoNote(adminId, videoNote.file_id);
+            }
+    
+            await ctx.reply("Video murojaatingiz uchun rahmat. Biz tez orada javob qaytaramiz.");
+        } catch (error) {
+            console.error('Xatolik yuz berdi:', error);
+            await ctx.reply('Dumaloq videoni yuborishda xatolik yuz berdi. ❌');
+        }
+    }
+
     @On("video")
     async onVideo(@Ctx() ctx: Context) {
         const caption = (ctx.message as any).caption || '';
-        const adminIds = [-1002398628088]; 
+        const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || []; 
         const userId = ctx.from?.id;
         const username = ctx.from?.username || ' username yo‘q ❌';
         const userName = ctx.from?.first_name || 'Foydalanuvchi';
@@ -166,7 +183,7 @@ export class TelegramService extends Telegraf {
     
     @On("voice")
     async onVoice(@Ctx() ctx: Context) {
-        const adminIds = [-1002398628088]; 
+        const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || []; 
         const userId = ctx.from?.id;
         const username = ctx.from?.username || ' username yo‘q ❌';
         const userName = ctx.from?.first_name || 'Foydalanuvchi';
@@ -198,7 +215,7 @@ export class TelegramService extends Telegraf {
 
     @On("message")
     async onMessage(@Ctx() ctx: Context) {
-        const adminIds = [-1002398628088]; 
+        const adminIds = process.env.ADMIN_IDS?.split(',').map(id => parseInt(id.trim())) || []; 
         const userId = ctx.from.id;
         const username = ctx.from.username || " username yo‘q ❌";
         const userName = ctx.from.first_name || " Foydalanuvchi";
