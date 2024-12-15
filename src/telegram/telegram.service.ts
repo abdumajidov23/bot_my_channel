@@ -62,7 +62,7 @@ export class TelegramService extends Telegraf {
 
         @Command('/challenge')
         async onChallenge(@Ctx() ctx: Context) {
-            const adminIds = [1652832397, 1164709077];
+            const adminIds = [-1002398628088];
         
 
             for (const adminId of adminIds) {
@@ -77,7 +77,7 @@ export class TelegramService extends Telegraf {
 
         @On('text')
         async onText(@Ctx() ctx: Context) {
-        const adminIds = [1652832397, 1164709077]; 
+        const adminIds = [-1002398628088]; 
         const userMessage = (ctx.message as any).text; 
         const userId = ctx.from.id;
         const username = ctx.from.username || ' username yo‘q ❌';
@@ -97,7 +97,7 @@ export class TelegramService extends Telegraf {
     
     @On('photo')
     async onPhoto(@Ctx() ctx: Context) {
-        const adminIds = [1652832397, 1164709077]; 
+        const adminIds = [-1002398628088]; 
 
         const photos = (ctx.message as any).photo; 
         const userId = ctx.from.id;
@@ -132,7 +132,7 @@ export class TelegramService extends Telegraf {
     @On("video")
     async onVideo(@Ctx() ctx: Context) {
         const caption = (ctx.message as any).caption || '';
-        const adminIds = [1652832397, 1164709077]; 
+        const adminIds = [-1002398628088]; 
         const userId = ctx.from?.id;
         const username = ctx.from?.username || ' username yo‘q ❌';
         const userName = ctx.from?.first_name || 'Foydalanuvchi';
@@ -166,7 +166,7 @@ export class TelegramService extends Telegraf {
     
     @On("voice")
     async onVoice(@Ctx() ctx: Context) {
-        const adminIds = [1652832397, 1164709077]; 
+        const adminIds = [-1002398628088]; 
         const userId = ctx.from?.id;
         const username = ctx.from?.username || ' username yo‘q ❌';
         const userName = ctx.from?.first_name || 'Foydalanuvchi';
@@ -198,7 +198,7 @@ export class TelegramService extends Telegraf {
 
     @On("message")
     async onMessage(@Ctx() ctx: Context) {
-        const adminIds = [1652832397, 1164709077]; 
+        const adminIds = [-1002398628088]; 
         const userId = ctx.from.id;
         const username = ctx.from.username || " username yo‘q ❌";
         const userName = ctx.from.first_name || " Foydalanuvchi";
